@@ -103,7 +103,20 @@ export async function POST(req: NextRequest) {
         writeDB(db);
         return NextResponse.json({ success: true, user: db[userIdx] });
       } else {
-        return NextResponse.json({ success: false, error: "User not found in database." }, { status: 404 });
+        // User not found in DB (e.g. server restarted and wiped local file DB, but user still has local session).
+        // Let's create the user in the database so their keys can be saved.
+        const newUser = {
+          username: cleanUsername || "unknown_user",
+          password: "auto_generated_password", // Placeholder since we don't have their password here
+          name: cleanName || cleanUsername || "Unknown",
+          email: cleanEmail || `${cleanUsername || "unknown"}@heritage.club`,
+          tavilyKey: tavilyKey || "tvly-sk-default-heritage-key",
+          groqKey: groqKey || "",
+          avatar: "🎩"
+        };
+        db.push(newUser);
+        writeDB(db);
+        return NextResponse.json({ success: true, user: newUser, recovered: true });
       }
     }
 

@@ -16,5 +16,14 @@
     "tavilyKey": "tvly-sk-default-heritage-key",
     "groqKey": "",
     "avatar": "🎩"
+  },
+  {
+    "username": "sterling",
+    "password": "auto_generated_password",
+    "name": "Sterling",
+    "email": "sterling@heritage.club",
+    "tavilyKey": "new",
+    "groqKey": "new",
+    "avatar": "🎩"
   }
 ]
