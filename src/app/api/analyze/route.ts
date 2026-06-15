@@ -121,6 +121,13 @@ You must study the specific active news and previous trends provided in the cont
 Explain the mechanical cause-and-effect relationship (e.g., how the $7B limit affects units creation/premium for MON100, or how RBI's repo rate choices directly alter treasury yields for Liquid BeES).
 Do NOT print raw placeholders or 'N/A'. All recommended fund metrics (buying prices, expense ratios, assets sizes) must be filled in using the reference specs.
 
+=== 🛡️ WEALTH SAFETY & SUITABILITY PROTOCOLS (MANDATORY) ===
+You are strictly bound by fiduciary suitability regulations. You must prevent the end user from investing in any wrong or overly speculative asset:
+1. Short-Term Timeframes (1 Week, 1 Month): Equities (like Nifty 50 or Nasdaq index ETFs) are STRICTLY FORBIDDEN due to high short-term variance. You MUST recommend capital preservation assets ONLY: Nippon India Liquid BeES (LIQUIDBEES.NS) or SEBI-regulated ultra-short debt funds.
+2. Low-Risk Profiles: Even for long horizons, Low-Risk profiles MUST be allocated primarily into high-security instruments (such as LIQUIDBEES.NS or Gold BeES GOLDBEES.NS as a defensive inflation anchor), strictly limiting equity allocations.
+3. High-Risk / Long-Term: Equity index allocations (NIFTYBEES.NS, MON100.NS) are suitable only if both risk tolerance is high AND timeframe is long-term (minimum 1 year, ideally 3+ years).
+4. Direct stock investments (like Reliance, TCS) are suitable only for long horizons and high risk. If timeframe is short, Direct Stocks are prohibited due to capital destruction risk.
+
 CRITICAL FORMAT REQUIREMENT:
 At the absolute end of your response, after the disclaimer, you MUST output two structural XML tags:
 1. <recommended_assets_json> containing a JSON array listing the exact funds or stocks you recommended:
@@ -181,7 +188,10 @@ Please structure your diagnostic plan using standard Markdown headings (###) wit
 Write an analytical, highly concrete 2-3 sentence overview of the tactical plan for this timeframe (${timeframe}) and capital size, explaining how macro conditions shape this stance.
 
 ### 💰 Tactical Asset Allocation
-Create a clear, direct allocation of their ₹${amount.toLocaleString('en-IN')}. Clearly state exactly how much of their ₹${amount.toLocaleString('en-IN')} principal goes into each recommended fund/stock (with exact NSE tickers e.g. NIFTYBEES.NS, LIQUIDBEES.NS, etc.). Do not include alternative comparison choices—just straightforward actionable allocations.
+Create a clear, direct allocation of their ₹${amount.toLocaleString('en-IN')}. Clearly state exactly how much of their ₹${amount.toLocaleString('en-IN')} principal goes into each recommended fund/stock (with exact NSE tickers e.g. NIFTYBEES.NS, LIQUIDBEES.NS, etc.). Do not include alternative comparison choices—just straightforward actionable allocations. Remember to follow our mandatory fiduciary suitability rules (e.g. no stocks or index ETFs if timeframe is 1 week or 1 month!).
+
+### 🛡️ Wealth Suitability & Safety Guardrail Assessment
+Explicitly assess why the recommended assets are suitable for this client's profile. Prove that you have not allocated them to any wrong, overly volatile, or unsafe markets matching their chosen timeframe of ${timeframe} and risk appetite. Detail the structural protections of these holdings.
 
 ### 📰 Live News Drivers & Asset Price Impact Analysis
 Detail exactly how the specific news headlines loaded above mechanically cause your suggested fund's buying price to move or stabilize over next week. Avoid generic theories; explain the physical market mechanics (such as inflows, unit creation premiums, US FOMC decisions, RBI policy pauses, or SEBI circulars).
@@ -205,7 +215,7 @@ List ONLY the hyperlinked titles of the credible news sites/articles from the co
 Briefly explain the Short Term/Long Term Capital Gains (STCG/LTCG) impact matching this ${timeframe} horizon.
 
 ### ⚠️ Professional Disclaimer
-Standard investment disclaimer.`;
+Standard investment disclaimer.`;,oldString:
 
     let report = "";
     
