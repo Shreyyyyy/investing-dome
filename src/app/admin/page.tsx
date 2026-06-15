@@ -26,11 +26,23 @@ export default function AdminPage() {
     loadAdminData();
   }, []);
 
-  const loadAdminData = () => {
-    // Fetch users and transaction audits from local storage
-    const users = JSON.parse(localStorage.getItem("heritage_registered_users") || "[]");
+  const loadAdminData = async () => {
+    try {
+      const res = await fetch("/api/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "get_all" })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setRegisteredUsers(data.users);
+      } else {
+        setRegisteredUsers(JSON.parse(localStorage.getItem("heritage_registered_users") || "[]"));
+      }
+    } catch (e) {
+      setRegisteredUsers(JSON.parse(localStorage.getItem("heritage_registered_users") || "[]"));
+    }
     const logs = JSON.parse(localStorage.getItem("heritage_audit_logs") || "[]");
-    setRegisteredUsers(users);
     setAuditLogs(logs);
   };
 

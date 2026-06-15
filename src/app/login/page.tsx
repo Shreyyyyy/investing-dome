@@ -12,7 +12,7 @@ export default function LoginPage() {
   const [loginError, setLoginError] = useState("");
   const [isOAuthLogging, setIsOAuthLogging] = useState(false);
 
-  const handleOAuthLogin = (e: React.FormEvent) => {
+  const handleOAuthLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError("");
 
@@ -24,54 +24,45 @@ export default function LoginPage() {
       return;
     }
 
-    // Retrieve the registered accounts database from localStorage
-    const existingUsers = JSON.parse(localStorage.getItem("heritage_registered_users") || "[]");
-    
-    // Check if the username already exists in our records
-    const matchedUser = existingUsers.find((u: any) => u.username?.toLowerCase() === cleanUsername.toLowerCase());
-
-    if (matchedUser) {
-      // Validate password for existing account
-      if (matchedUser.password !== cleanPassword) {
-        setLoginError("This username is already registered with a different password.");
-        return;
-      }
-      
-      // Ensure matchedUser has username property for legacy account self-healing
-      if (!matchedUser.username) {
-        matchedUser.username = cleanUsername;
-        localStorage.setItem("heritage_registered_users", JSON.stringify(existingUsers));
-      }
-      
-      setIsOAuthLogging(true);
-      setTimeout(() => {
-        // Log in with existing account
-        localStorage.setItem("heritage_session", JSON.stringify(matchedUser));
-        router.push("/dashboard");
-      }, 1000);
-    } else {
-      // Automatically register a new account on-the-fly!
-      setIsOAuthLogging(true);
-      setTimeout(() => {
-        const uppercaseName = cleanUsername.charAt(0).toUpperCase() + cleanUsername.slice(1);
-        const newUserSession = {
+    setIsOAuthLogging(true);
+    try {
+      const response = await fetch("/api/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "login",
           username: cleanUsername,
-          password: cleanPassword,
-          name: uppercaseName,
-          email: `${cleanUsername.toLowerCase()}@heritage.club`,
-          tavilyKey: "tvly-sk-default-heritage-key",
-          groqKey: "",
-          avatar: cleanUsername.toLowerCase().includes("lady") || cleanUsername.toLowerCase().includes("abigail") ? "👒" : "🎩"
-        };
-        
-        // Add to users database
-        existingUsers.push(newUserSession);
+          password: cleanPassword
+        })
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        // Sync local storage database for client compatibility & redundancy
+        const existingUsers = JSON.parse(localStorage.getItem("heritage_registered_users") || "[]");
+        const alreadyExists = existingUsers.some((u: any) => u.username?.toLowerCase() === data.user.username?.toLowerCase());
+        if (!alreadyExists) {
+          existingUsers.push(data.user);
+        } else {
+          // Update in local cache as well
+          const idx = existingUsers.findIndex((u: any) => u.username?.toLowerCase() === data.user.username?.toLowerCase());
+          if (idx !== -1) {
+            existingUsers[idx] = data.user;
+          }
+        }
         localStorage.setItem("heritage_registered_users", JSON.stringify(existingUsers));
-        
-        // Log in immediately
-        localStorage.setItem("heritage_session", JSON.stringify(newUserSession));
-        router.push("/dashboard");
-      }, 1200);
+        localStorage.setItem("heritage_session", JSON.stringify(data.user));
+
+        setTimeout(() => {
+          router.push("/dashboard");
+        }, 1000);
+      } else {
+        setLoginError(data.error || "Authentication failed.");
+        setIsOAuthLogging(false);
+      }
+    } catch (err: any) {
+      setLoginError(`Network Error: ${err.message}`);
+      setIsOAuthLogging(false);
     }
   };
 

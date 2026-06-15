@@ -191,7 +191,7 @@ export default function UserDashboard() {
     }
   };
 
-  const handleSaveKeys = () => {
+  const handleSaveKeys = async () => {
     if (!session) return;
     
     const updatedSession = {
@@ -200,35 +200,78 @@ export default function UserDashboard() {
       tavilyKey: editTavilyKey,
     };
     
-    setSession(updatedSession);
-    localStorage.setItem("heritage_session", JSON.stringify(updatedSession));
-    
-    const existingUsers = JSON.parse(localStorage.getItem("heritage_registered_users") || "[]");
-    const updatedUsers = existingUsers.map((u: any) => {
-      const uUsername = u.username?.toLowerCase() || "";
-      const sUsername = session.username?.toLowerCase() || "";
-      const uEmail = u.email?.toLowerCase() || "";
-      const sEmail = session.email?.toLowerCase() || "";
-      const uName = u.name?.toLowerCase() || "";
-      const sName = session.name?.toLowerCase() || "";
-      
-      if (
-        (uUsername && sUsername && uUsername === sUsername) ||
-        (uEmail && sEmail && uEmail === sEmail) ||
-        (uName && sName && uName === sName)
-      ) {
-        return {
-          ...u,
+    try {
+      // Save keys to server-side database so it is shared across all user devices!
+      const res = await fetch("/api/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "save_keys",
+          username: session.username,
+          email: session.email,
+          name: session.name,
           groqKey: editGroqKey,
-          tavilyKey: editTavilyKey,
-        };
+          tavilyKey: editTavilyKey
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSession(data.user);
+        localStorage.setItem("heritage_session", JSON.stringify(data.user));
+        
+        const existingUsers = JSON.parse(localStorage.getItem("heritage_registered_users") || "[]");
+        const updatedUsers = existingUsers.map((u: any) => {
+          const uUsername = u.username?.toLowerCase() || "";
+          const sUsername = session.username?.toLowerCase() || "";
+          const uEmail = u.email?.toLowerCase() || "";
+          const sEmail = session.email?.toLowerCase() || "";
+          const uName = u.name?.toLowerCase() || "";
+          const sName = session.name?.toLowerCase() || "";
+          
+          if (
+            (uUsername && sUsername && uUsername === sUsername) ||
+            (uEmail && sEmail && uEmail === sEmail) ||
+            (uName && sName && uName === sName)
+          ) {
+            return data.user;
+          }
+          return u;
+        });
+        localStorage.setItem("heritage_registered_users", JSON.stringify(updatedUsers));
+        
+        setIsEditingKeys(false);
+        alert("API keys updated, secured, and synced across all your devices successfully!");
+      } else {
+        alert(`Server Error saving keys: ${data.error}`);
       }
-      return u;
-    });
-    localStorage.setItem("heritage_registered_users", JSON.stringify(updatedUsers));
-    
-    setIsEditingKeys(false);
-    alert("API keys updated and secured successfully!");
+    } catch (e: any) {
+      // Offline fallback
+      setSession(updatedSession);
+      localStorage.setItem("heritage_session", JSON.stringify(updatedSession));
+      
+      const existingUsers = JSON.parse(localStorage.getItem("heritage_registered_users") || "[]");
+      const updatedUsers = existingUsers.map((u: any) => {
+        const uUsername = u.username?.toLowerCase() || "";
+        const sUsername = session.username?.toLowerCase() || "";
+        const uEmail = u.email?.toLowerCase() || "";
+        const sEmail = session.email?.toLowerCase() || "";
+        const uName = u.name?.toLowerCase() || "";
+        const sName = session.name?.toLowerCase() || "";
+        
+        if (
+          (uUsername && sUsername && uUsername === sUsername) ||
+          (uEmail && sEmail && uEmail === sEmail) ||
+          (uName && sName && uName === sName)
+        ) {
+          return updatedSession;
+        }
+        return u;
+      });
+      localStorage.setItem("heritage_registered_users", JSON.stringify(updatedUsers));
+      
+      setIsEditingKeys(false);
+      alert("API keys updated locally! Connection error syncing with server database.");
+    }
   };
 
   const handleSignout = () => {

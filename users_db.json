@@ -1,0 +1,20 @@
+[
+  {
+    "username": "testuser",
+    "password": "pwd",
+    "name": "Testuser",
+    "email": "testuser@heritage.club",
+    "tavilyKey": "new_tavily_key_456",
+    "groqKey": "new_groq_key_123",
+    "avatar": "🎩"
+  },
+  {
+    "username": "testuser@heritage.club",
+    "password": "pwd",
+    "name": "Testuser@heritage.club",
+    "email": "testuser@heritage.club@heritage.club",
+    "tavilyKey": "tvly-sk-default-heritage-key",
+    "groqKey": "",
+    "avatar": "🎩"
+  }
+]
