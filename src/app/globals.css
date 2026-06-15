@@ -1,0 +1,74 @@
+@tailwind base;
+@import "./custom-base.css" reference;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background-color: #faf8f5; /* Warm cream */
+  color: #1a202c; /* Clear charcoal text for high contrast */
+  font-family: 'Arial', 'Helvetica', 'Inter', sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6, .font-serif, .font-sans {
+  font-family: 'Arial', 'Helvetica', 'Inter', sans-serif;
+}
+
+/* Custom scrollbars & smooth transitions */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #faf8f5;
+}
+::-webkit-scrollbar-thumb {
+  background: #cda250; /* Gold scrollbar */
+  border-radius: 4px;
+}
+
+/* Bespoke Markdown Spacing and Table Overrides for Report Box */
+.prose h3 {
+  margin-top: 2rem !important;
+  margin-bottom: 1rem !important;
+  font-size: 1.25rem !important;
+  font-weight: bold !important;
+  color: #0e1f13 !important;
+  border-b-width: 1px;
+  border-bottom: 2px solid #cda250 !important;
+  padding-bottom: 0.35rem !important;
+  display: block !important;
+}
+.prose p {
+  margin-top: 0.5rem !important;
+  margin-bottom: 1.25rem !important;
+  line-height: 1.75 !important;
+}
+.prose ul, .prose ol {
+  margin-top: 0.5rem !important;
+  margin-bottom: 1.25rem !important;
+  padding-left: 1.5rem !important;
+  list-style-type: disc !important;
+}
+.prose li {
+  margin-bottom: 0.5rem !important;
+  line-height: 1.6 !important;
+}
+.prose table {
+  width: 100% !important;
+  margin-top: 1.25rem !important;
+  margin-bottom: 1.75rem !important;
+  border-collapse: collapse !important;
+  font-size: 0.85rem !important;
+}
+.prose th, .prose td {
+  padding: 0.6rem 0.85rem !important;
+  border: 1px solid #eddccf !important;
+  text-align: left !important;
+}
+.prose th {
+  background-color: #f5ece5 !important;
+  font-weight: bold !important;
+  color: #0e1f13 !important;
+}
+.prose tr:nth-child(even) {
+  background-color: #faf8f5 !important;
+}
