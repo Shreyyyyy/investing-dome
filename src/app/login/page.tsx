@@ -18,46 +18,57 @@ export default function LoginPage() {
     e.preventDefault();
     setLoginError("");
 
-    if (!username.trim() || !password.trim()) {
+    const cleanUsername = username.trim();
+    const cleanPassword = password.trim();
+
+    if (!cleanUsername || !cleanPassword) {
       setLoginError("Both username and password are strictly mandatory.");
       return;
     }
 
-    // Classy validation matching our elegant elite personas
-    const isLordSterling = username.toLowerCase() === "sterling" && password === "sterling_heritage_2026";
-    const isLadyAbigail = username.toLowerCase() === "abigail" && password === "abigail_heritage_2026";
+    // Retrieve the registered accounts database from localStorage
+    const existingUsers = JSON.parse(localStorage.getItem("heritage_registered_users") || "[]");
+    
+    // Check if the username already exists in our records
+    const matchedUser = existingUsers.find((u: any) => u.username?.toLowerCase() === cleanUsername.toLowerCase());
 
-    if (!isLordSterling && !isLadyAbigail) {
-      setLoginError("Incorrect credentials. Try 'sterling' / 'sterling_heritage_2026' or 'abigail' / 'abigail_heritage_2026'.");
-      return;
-    }
-
-    // Match chosen identity to username if entered
-    const finalIdentity = isLordSterling ? "Lord Sterling" : "Lady Abigail";
-
-    setIsOAuthLogging(true);
-    setTimeout(() => {
-      // Create user session details
-      const userSession = {
-        name: finalIdentity,
-        email: `${finalIdentity.toLowerCase().replace(" ", "")}@heritage.club`,
-        tavilyKey: tavilyKey || "tvly-sk-default-heritage-key",
-        groqKey: groqKey || "",
-        avatar: finalIdentity === "Lord Sterling" ? "🎩" : "👒"
-      };
-      
-      localStorage.setItem("heritage_session", JSON.stringify(userSession));
-      
-      // Also register this user in the registered users table for the Admin Dashboard to read!
-      const existingUsers = JSON.parse(localStorage.getItem("heritage_registered_users") || "[]");
-      const userExists = existingUsers.some((u: any) => u.email === userSession.email);
-      if (!userExists) {
-        existingUsers.push(userSession);
-        localStorage.setItem("heritage_registered_users", JSON.stringify(existingUsers));
+    if (matchedUser) {
+      // Validate password for existing account
+      if (matchedUser.password !== cleanPassword) {
+        setLoginError("This username is already registered with a different password.");
+        return;
       }
       
-      router.push("/dashboard");
-    }, 1200);
+      setIsOAuthLogging(true);
+      setTimeout(() => {
+        // Log in with existing account
+        localStorage.setItem("heritage_session", JSON.stringify(matchedUser));
+        router.push("/dashboard");
+      }, 1000);
+    } else {
+      // Automatically register a new account on-the-fly!
+      setIsOAuthLogging(true);
+      setTimeout(() => {
+        const uppercaseName = cleanUsername.charAt(0).toUpperCase() + cleanUsername.slice(1);
+        const newUserSession = {
+          username: cleanUsername,
+          password: cleanPassword,
+          name: uppercaseName,
+          email: `${cleanUsername.toLowerCase()}@heritage.club`,
+          tavilyKey: tavilyKey || "tvly-sk-default-heritage-key",
+          groqKey: groqKey || "",
+          avatar: cleanUsername.toLowerCase().includes("lady") || cleanUsername.toLowerCase().includes("abigail") ? "👒" : "🎩"
+        };
+        
+        // Add to users database
+        existingUsers.push(newUserSession);
+        localStorage.setItem("heritage_registered_users", JSON.stringify(existingUsers));
+        
+        // Log in immediately
+        localStorage.setItem("heritage_session", JSON.stringify(newUserSession));
+        router.push("/dashboard");
+      }, 1200);
+    }
   };
 
   return (
@@ -73,8 +84,12 @@ export default function LoginPage() {
         <h2 className="font-serif text-2xl md:text-3xl font-bold text-hunter-800 tracking-tight text-center mb-1 font-sans">
           Bespoke Portal
         </h2>
-        <p className="text-xs uppercase tracking-widest text-brass-600 mb-8 font-bold font-sans">
+        <p className="text-xs uppercase tracking-widest text-brass-600 mb-6 font-bold font-sans">
           OAuth2 Verified Entrance
+        </p>
+
+        <p className="text-[11px] text-center text-hunter-800/70 mb-6 bg-cream-50 p-3 border border-cream-200 rounded leading-relaxed font-sans">
+          🔑 **Cabinet Registration Enabled**: Enter any custom Username & Password to instantly create and register a new account on-the-fly, or use `sterling` / `sterling_heritage_2026`.
         </p>
 
         {/* Credentials Form Block */}
