@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "The Heritage Club - AI Planner",
-  description: "Bespoke Investment & Wealth Management Planning",
+  title: "SHREY HERITAGE CLUB - AI Planner",
+  description: "Shrey's Bespoke Investment & Wealth Management Planning",
 };
 
 export default function RootLayout({
@@ -17,7 +17,7 @@ export default function RootLayout({
         <header className="border-b border-cream-200 py-6 px-4 md:px-12 flex justify-between items-center bg-cream-50">
           <div className="flex flex-col">
             <span className="text-xs uppercase tracking-widest text-brass-600 font-bold">ESTABLISHED 2026</span>
-            <span className="font-serif text-2xl font-bold text-hunter-800 tracking-tight">THE HERITAGE CLUB</span>
+            <span className="font-serif text-2xl font-bold text-hunter-800 tracking-tight">SHREY HERITAGE CLUB</span>
           </div>
           <div className="flex items-center space-x-2 text-xs uppercase tracking-wider text-brass-600">
             <span>Premium Wealth Management</span>
@@ -29,7 +29,7 @@ export default function RootLayout({
         </main>
         
         <footer className="border-t border-cream-200 py-8 px-4 text-center text-xs uppercase tracking-widest text-brass-600 bg-cream-50">
-          © {new Date().getFullYear()} THE HERITAGE CLUB. ALL RIGHTS RESERVED. SECURED VIA OAUTH2 & GROQ AI.
+          © {new Date().getFullYear()} SHREY HERITAGE CLUB. ALL RIGHTS RESERVED. SECURED VIA OAUTH2 & GROQ AI.
         </footer>
       </body>
     </html>

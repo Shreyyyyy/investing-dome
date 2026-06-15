@@ -11,7 +11,7 @@ export default function Home() {
       </div>
 
       <h1 className="font-serif text-4xl md:text-6xl font-bold text-hunter-800 tracking-tight leading-none mb-6">
-        Bespoke Wealth <br className="hidden md:inline" />
+        Shrey's Bespoke Wealth <br className="hidden md:inline" />
         <span className="italic text-brass-600">Planning & Diagnostics</span>
       </h1>
 

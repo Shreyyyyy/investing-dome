@@ -3,7 +3,7 @@
 - URL: ${e.url}
 - Snippet: ${e.snippet}`).join("\n\n"):"No live news found. Using historical market performance averages.",h=u.length>0?u.map((e,a)=>`Groww Spec Reference [${a+1}]:
 - Title: ${e.title}
-- Details: ${e.snippet}`).join("\n\n"):"Default benchmark ratios apply.",f=`You are a premier, elite Senior Financial Analyst and Wealth Advisor at The Heritage Club.
+- Details: ${e.snippet}`).join("\n\n"):"Default benchmark ratios apply.",f=`You are a premier, elite Senior Financial Analyst and Wealth Advisor at Shrey Heritage Club.
 Your analysis must be mathematically rigorous, razor-sharp, and highly objective. Avoid wishy-washy generalities, textbook definitions, and fluff.
 You are tasked with providing concrete, factual, and deeply logical justifications for next week's expected directions.
 You must study the specific active news and previous trends provided in the context (such as the RBI overseas limit cap of $7B on mutual funds/ETFs, specific interest rate differentials, inflation CPI values, or corporate index additions).
