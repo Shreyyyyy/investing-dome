@@ -187,29 +187,3 @@ export default function LoginPage() {
     </div>
   );
 }
-              Stored locally on your phone/browser for privacy. Not shared on cloud.
-            </p>
-          </div>
-        </div>
-
-        {/* OAuth Connect Button */}
-        <button
-          onClick={handleOAuthLogin}
-          disabled={isOAuthLogging}
-          className="w-full py-4 bg-brass-500 hover:bg-brass-600 text-white rounded font-serif uppercase tracking-widest text-xs font-bold transition duration-300 flex items-center justify-center gap-2 shadow-sm"
-        >
-          {isOAuthLogging ? (
-            <span className="flex items-center space-x-2">
-              <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-              <span>Attuning Keys...</span>
-            </span>
-          ) : (
-            <>
-              <LogIn size={14} /> Authenticate via OAuth2
-            </>
-          )}
-        </button>
-      </div>
-    </div>
-  );
-}
