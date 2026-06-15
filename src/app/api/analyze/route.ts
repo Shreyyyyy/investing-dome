@@ -211,13 +211,19 @@ Explicitly assess why the recommended assets are suitable for this client's prof
 Detail exactly how the specific news headlines loaded above mechanically cause your suggested fund's buying price to move or stabilize over next week. Avoid generic theories; explain the physical market mechanics (such as inflows, unit creation premiums, US FOMC decisions, RBI policy pauses, or SEBI circulars).
 
 ### 🧮 Empirical Performance & Returns Projection
-Provide a mathematically accurate projection table showing your natural, actual estimated short-term returns. Do not force these values to align with any external target; calculate the logical expected returns based on your news analysis and asset history:
+Provide a mathematically accurate, highly realistic projection table. 
+IMPORTANT on Realistic Returns: 
+- For short-term horizons like '1 Week' or '1 Month', you MUST NOT write double-digit gains! Equities and gold do not grow by 10% in a single week in any realistic scenario.
+- Instead, base your short-term expected returns on a realistic division of their annual historical CAGR (e.g., for a 12% p.a. asset, the realistic expected return over 1 Week is ~0.23%, over 1 Month is ~1.0%).
+- For secure liquid assets like LIQUIDBEES.NS, the return is safe and yields around 5.5% - 6% p.a., meaning a 1-week realistic return is ~0.11% (₹5.50 on ₹5,000 capital).
+- If recommending equities over short terms (under safety exemptions), clearly explain that the weekly variance can be negative, and use a conservative realistic decimal rate (e.g., 0.15% to 0.25% for 1 week).
+The table must show:
 - Asset Ticker
 - Allocated Capital (₹)
 - Expected Short-Term Return (%) over ${timeframe}
 - Expected Profit (₹)
 - Maturity Value (₹)
-Add a row for the Total and calculate the total annualized yield (% p.a.). Ensure the arithmetic is flawless.
+Add a row for the Total and calculate the total annualized yield (% p.a.). Ensure the arithmetic is flawless and realistic.
 
 ### 🧠 Rigid Structural Justification
 Provide a detailed explanation of why these specific assets are selected. Cite actual expense ratios, tracking errors, and AUM size from the Groww reference context.
