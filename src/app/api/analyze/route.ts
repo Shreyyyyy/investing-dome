@@ -74,39 +74,51 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { amount, timeframe, risk, allocation, focus_area, tavilyKey, groqKey } = body;
     
-    // Determine target assets and exact search query
-    let targetAssetLabel = "";
-    let searchQuery = "";
-    let benchmarkData = "";
-    
-    if (risk.toLowerCase().includes("low")) {
-      targetAssetLabel = "LIQUIDBEES.NS (Nippon India ETF Nifty 1D Rate Liquid BeES)";
-      searchQuery = "LIQUIDBEES.NS RBI interest rate news";
-      benchmarkData = "- LIQUIDBEES.NS: Current Price ~₹1000.00, Expense Ratio ~0.50%, Volatility Beta ~0.00.";
-    } else if (risk.toLowerCase().includes("high")) {
-      targetAssetLabel = "MON100.NS (Motilal Oswal Nasdaq 100 ETF) & NIFTYBEES.NS (Nifty BeES)";
-      searchQuery = "MON100.NS tech stock market news price rise fall";
-      benchmarkData = "- NIFTYBEES.NS: Current Price ~₹285.00, Expense Ratio ~0.12%, Volatility Beta ~1.00.\n- MON100.NS: Current Price ~₹168.00, Expense Ratio ~0.54%, Volatility Beta ~1.20.";
-    } else {
-      targetAssetLabel = "NIFTYBEES.NS (Nifty BeES) & GOLDBEES.NS (Gold BeES)";
-      searchQuery = "NIFTYBEES.NS GOLDBEES.NS inflation news momentum";
-      benchmarkData = "- NIFTYBEES.NS: Current Price ~₹285.00, Expense Ratio ~0.12%, Volatility Beta ~1.00.\n- GOLDBEES.NS: Current Price ~₹65.00, Expense Ratio ~0.15%, Volatility Beta ~0.20.";
+    // Create a dynamic, highly targeted set of search queries to fetch exact matches for the user's inputs
+    const queriesToSearch = [
+      `Indian stock market performance outlook ${timeframe} ${risk} risk`,
+      `best ETFs mutual funds India ${timeframe} horizon ${risk}`
+    ];
+
+    if (focus_area && focus_area.trim()) {
+      queriesToSearch.push(`Indian market ${focus_area.trim()} investment news trends`);
     }
-    
-    // Execute search crawl
-    let newsItems = [];
-    if (tavilyKey && tavilyKey !== "tvly-sk-default-heritage-key") {
-      newsItems = await searchTavily(searchQuery, tavilyKey, 5);
-    } else {
-      newsItems = await searchDuckDuckGo(searchQuery, 5);
+
+    // Execute parallel/sequential dynamic search crawls
+    let newsItems: any[] = [];
+    const maxResultsPerQuery = focus_area ? 2 : 3;
+
+    try {
+      for (const query of queriesToSearch) {
+        let results = [];
+        if (tavilyKey && tavilyKey !== "tvly-sk-default-heritage-key") {
+          results = await searchTavily(query, tavilyKey, maxResultsPerQuery);
+        } else {
+          results = await searchDuckDuckGo(query, maxResultsPerQuery);
+        }
+        newsItems.push(...results);
+      }
+    } catch (searchErr) {
+      console.error("Search Crawler Error:", searchErr);
+    }
+
+    // Avoid duplicate articles by title
+    const uniqueNewsItems: any[] = [];
+    const seenTitles = new Set<string>();
+    for (const item of newsItems) {
+      const cleanTitle = item.title.toLowerCase().trim();
+      if (!seenTitles.has(cleanTitle)) {
+        seenTitles.add(cleanTitle);
+        uniqueNewsItems.push(item);
+      }
     }
     
     // Groww reference specs crawl
     const growwSpecs = await searchDuckDuckGo("LIQUIDBEES NIFTYBEES GOLDBEES MON100 Groww expense ratio assets", 3);
     
     // Build context strings
-    const newsContext = newsItems.length > 0 
-      ? newsItems.map((n: any, idx: number) => `Source [${idx + 1}]:\n- Title: ${n.title}\n- URL: ${n.url}\n- Snippet: ${n.snippet}`).join("\n\n")
+    const newsContext = uniqueNewsItems.length > 0 
+      ? uniqueNewsItems.map((n: any, idx: number) => `Source [${idx + 1}]:\n- Title: ${n.title}\n- URL: ${n.url}\n- Snippet: ${n.snippet}`).join("\n\n")
       : "No live news found. Using historical market performance averages.";
       
     const growwContext = growwSpecs.length > 0
@@ -130,7 +142,7 @@ You are strictly bound by fiduciary suitability regulations. You must prevent th
 
 CRITICAL FORMAT REQUIREMENT:
 At the absolute end of your response, after the disclaimer, you MUST output two structural XML tags:
-1. <recommended_assets_json> containing a JSON array listing the exact funds or stocks you recommended:
+1. <recommended_assets_json> containing a JSON array listing the exact funds or stocks you recommended in your plan:
 <recommended_assets_json>
 [
   {
