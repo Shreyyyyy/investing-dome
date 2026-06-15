@@ -358,11 +358,14 @@ export default function UserDashboard() {
                 ₹
               </span>
               <input 
-                type="number"
-                value={amount}
-                onChange={(e) => setAmount(Number(e.target.value))}
+                type="text"
+                pattern="[0-9]*"
+                value={amount === 0 ? "" : amount}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/[^0-9]/g, "");
+                  setAmount(val ? Number(val) : 0);
+                }}
                 className="w-full bg-transparent py-3 pl-8 pr-4 text-xs font-bold focus:outline-none focus:border-brass-500 rounded text-hunter-800"
-                min="1000"
               />
             </div>
             
