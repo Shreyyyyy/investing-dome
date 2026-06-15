@@ -4,12 +4,14 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { marked } from "marked";
 import { 
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer 
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend 
 } from "recharts";
 import { 
   Coins, Hourglass, ShieldAlert, Award, Compass, RefreshCw, FileDown, 
   HelpCircle, CheckCircle2, AlertCircle, TrendingUp, Calendar, Newspaper 
 } from "lucide-react";
+
+const COLORS = ["#8a704c", "#1e3f20", "#2c4a5e", "#7b506f", "#bf5a36", "#4682b4"];
 
 export default function UserDashboard() {
   const router = useRouter();
@@ -396,6 +398,145 @@ export default function UserDashboard() {
           </button>
         </div>
 
+        {/* Live Benchmark Performance Chart Card */}
+        <div className="bg-white border border-cream-200 rounded-lg p-6 shadow-sm space-y-4 font-sans">
+          <div>
+            <span className="text-[10px] tracking-widest uppercase font-bold text-brass-600 block">
+              EMPIRICAL BENCHMARK TRENDS
+            </span>
+            <h3 className="text-md font-bold text-hunter-800 font-sans">
+              Market Performance Explorer
+            </h3>
+            <p className="text-xs text-hunter-800/60">
+              Analyze and explore the historical trajectories of major assets.
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            <div>
+              <label className="block text-[10px] tracking-widest uppercase font-bold text-brass-600 mb-1">
+                Select Benchmark Asset
+              </label>
+              <select 
+                value={isCustomChart ? "CUSTOM" : chartAsset}
+                onChange={(e) => {
+                  if (e.target.value === "CUSTOM") {
+                    setIsCustomChart(true);
+                  } else {
+                    setIsCustomChart(false);
+                    setChartAsset(e.target.value);
+                  }
+                }}
+                className="w-full bg-cream-50 border border-cream-200 p-2.5 text-xs focus:outline-none focus:border-brass-500 rounded text-hunter-800"
+              >
+                <option value="NIFTYBEES.NS">NIFTYBEES.NS (Nifty 50 Index)</option>
+                <option value="MON100.NS">MON100.NS (Nasdaq 100 Index)</option>
+                <option value="GOLDBEES.NS">GOLDBEES.NS (Physical Gold Spot)</option>
+                <option value="LIQUIDBEES.NS">LIQUIDBEES.NS (1D Rate Treasury / Cash)</option>
+                <option value="CUSTOM">Custom Symbol...</option>
+              </select>
+            </div>
+
+            {isCustomChart && (
+              <div>
+                <label className="block text-[10px] tracking-widest uppercase font-bold text-brass-600 mb-1">
+                  Enter Custom Yahoo Finance Ticker
+                </label>
+                <input 
+                  type="text"
+                  placeholder="e.g. RELIANCE.NS, INFY.NS"
+                  value={customChartAsset}
+                  onChange={(e) => setCustomChartAsset(e.target.value.toUpperCase())}
+                  className="w-full bg-cream-50 border border-cream-200 p-2.5 text-xs focus:outline-none focus:border-brass-500 rounded text-hunter-800 uppercase font-mono"
+                />
+              </div>
+            )}
+
+            <div>
+              <label className="block text-[10px] tracking-widest uppercase font-bold text-brass-600 mb-1">
+                Timeline Range
+              </label>
+              <div className="flex rounded border border-cream-200 overflow-hidden text-[10px] font-bold">
+                {["1 Year", "5 Years", "10 Years"].map((range) => (
+                  <button
+                    key={range}
+                    onClick={() => setChartPeriod(range === "10 Years" ? "10 Years (Max)" : range)}
+                    className={`flex-1 py-1.5 transition ${
+                      (chartPeriod === "10 Years (Max)" && range === "10 Years") || chartPeriod === range
+                        ? "bg-brass-500 text-white"
+                        : "bg-cream-50 hover:bg-cream-100 text-hunter-800 border-r border-cream-200 last:border-0"
+                    }`}
+                  >
+                    {range}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Performance Line Chart */}
+            <div className="h-44 border border-cream-100 rounded-lg bg-cream-50/20 p-2.5 relative flex flex-col justify-between">
+              {chartLoading && (
+                <div className="absolute inset-0 bg-white/70 flex items-center justify-center z-10">
+                  <span className="w-5 h-5 border-2 border-brass-500 border-t-transparent rounded-full animate-spin"></span>
+                </div>
+              )}
+
+              {chartData.length > 0 ? (
+                <div className="h-28 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f2ebd9" />
+                      <XAxis 
+                        dataKey="date" 
+                        tick={{ fontSize: 8, fill: '#8a704c' }} 
+                        stroke="#e2d1b9"
+                      />
+                      <YAxis 
+                        tick={{ fontSize: 8, fill: '#8a704c' }} 
+                        domain={['auto', 'auto']}
+                        stroke="#e2d1b9"
+                        orientation="right"
+                      />
+                      <Tooltip 
+                        contentStyle={{ background: '#fdfbf7', border: '1px solid #e2d1b9', fontSize: '9px', borderRadius: '4px' }}
+                        labelStyle={{ fontWeight: 'bold', color: '#1a331e' }}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="price" 
+                        stroke="#8a704c" 
+                        strokeWidth={1.5} 
+                        dot={false}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              ) : (
+                <div className="h-28 flex items-center justify-center text-[10px] text-gray-400">
+                  No chart data available.
+                </div>
+              )}
+
+              {growthMetrics && (
+                <div className="border-t border-cream-100 pt-2 flex justify-between text-[10px] font-sans">
+                  <div>
+                    <span className="text-gray-400 uppercase tracking-widest block font-bold text-[8px]">Start / End Price</span>
+                    <span className="font-mono font-bold text-hunter-800">
+                      ₹{growthMetrics.start.toFixed(1)} → ₹{growthMetrics.end.toFixed(1)}
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-gray-400 uppercase tracking-widest block font-bold text-[8px]">Absolute Growth</span>
+                    <span className={`font-mono font-bold ${growthMetrics.growth >= 0 ? "text-green-700" : "text-red-600"}`}>
+                      {growthMetrics.growth >= 0 ? "▲" : "▼"} {Math.abs(growthMetrics.growth).toFixed(1)}%
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
       </div>
 
       {/* RIGHT COLUMN: Output & Empirical charts */}
@@ -443,6 +584,69 @@ export default function UserDashboard() {
                 <FileDown size={18} />
               </button>
             </div>
+
+            {/* Graphical Asset Allocation Pie Chart Visualization */}
+            {recommendedFunds.length > 0 && (
+              <div className="bg-cream-50/40 border border-cream-200 rounded-lg p-6 shadow-sm">
+                <span className="text-[10px] tracking-widest uppercase font-bold text-brass-600 block mb-1">
+                  PORTFOLIO WEIGHTINGS VISUALIZER
+                </span>
+                <h4 className="text-sm font-bold text-hunter-800 mb-4 border-b border-cream-200 pb-1.5 font-sans">
+                  Asset Allocation & Weighting Split
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                  <div className="h-44 relative flex items-center justify-center">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={recommendedFunds}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={45}
+                          outerRadius={65}
+                          paddingAngle={3}
+                          dataKey="allocation_pct"
+                          nameKey="ticker"
+                        >
+                          {recommendedFunds.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip 
+                          formatter={(value, name) => [`${value}% Allocation`, name]}
+                          contentStyle={{ background: '#fdfbf7', border: '1px solid #e2d1b9', fontSize: '11px', borderRadius: '4px' }}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                      <span className="text-[8px] text-gray-400 uppercase tracking-widest font-bold font-sans">Total Base</span>
+                      <span className="text-xs font-bold text-hunter-800 font-mono">₹{amount.toLocaleString('en-IN')}</span>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    {recommendedFunds.map((fund, index) => {
+                      const allocPct = fund.allocation_pct || (recommendedFunds.length === 1 ? 100 : Math.round(100 / recommendedFunds.length));
+                      const fundVal = (amount * allocPct) / 100;
+                      return (
+                        <div key={index} className="flex items-center justify-between p-2 rounded border border-cream-200 bg-white shadow-xs">
+                          <div className="flex items-center gap-2">
+                            <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: COLORS[index % COLORS.length] }}></span>
+                            <div className="leading-tight">
+                              <span className="font-mono text-xs font-bold text-hunter-800 block">{fund.ticker}</span>
+                              <span className="text-[9px] text-gray-400 font-sans block truncate max-w-[140px]">{fund.name}</span>
+                            </div>
+                          </div>
+                          <div className="text-right leading-tight">
+                            <span className="text-xs font-bold text-hunter-800 block">₹{fundVal.toLocaleString('en-IN')}</span>
+                            <span className="text-[9px] font-bold text-brass-600 block">{allocPct}% Weight</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Legitimate Leger Summary Card (Perfect response) */}
             <div className="bg-cream-50 border border-brass-500/30 rounded-lg p-6 shadow-inner relative overflow-hidden font-sans">

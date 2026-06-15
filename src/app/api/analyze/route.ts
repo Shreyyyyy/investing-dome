@@ -80,13 +80,28 @@ export async function POST(req: NextRequest) {
       `best ETFs mutual funds India ${timeframe} horizon ${risk}`
     ];
 
+    // Explicitly add targeted query based on allocation style (single/multiple funds) and amount range
+    const isSingleSelection = allocation.toLowerCase().includes("single") || allocation.toLowerCase().includes("concentrated");
+    if (isSingleSelection) {
+      queriesToSearch.push(`best single ${risk.includes("Low") ? "liquid debt" : "equity index"} ETF mutual fund to buy in India`);
+    } else {
+      queriesToSearch.push(`model diversified mutual fund ETF portfolio allocation India ${risk}`);
+    }
+
+    // Add budget-informed query
+    if (amount >= 500000) {
+      queriesToSearch.push(`HNI mutual fund portfolio allocation ${amount} INR India`);
+    } else if (amount <= 30000) {
+      queriesToSearch.push(`best small sum ETF mutual fund investment for ${amount} INR India`);
+    }
+
     if (focus_area && focus_area.trim()) {
       queriesToSearch.push(`Indian market ${focus_area.trim()} investment news trends`);
     }
 
     // Execute parallel/sequential dynamic search crawls
     let newsItems: any[] = [];
-    const maxResultsPerQuery = focus_area ? 2 : 3;
+    const maxResultsPerQuery = focus_area ? 2 : 2;
 
     try {
       for (const query of queriesToSearch) {
@@ -140,9 +155,13 @@ You are strictly bound by fiduciary suitability regulations. You must prevent th
 3. High-Risk / Long-Term: Equity index allocations (NIFTYBEES.NS, MON100.NS) are suitable only if both risk tolerance is high AND timeframe is long-term (minimum 1 year, ideally 3+ years).
 4. Direct stock investments (like Reliance, TCS) are suitable only for long horizons and high risk. If timeframe is short, Direct Stocks are prohibited due to capital destruction risk.
 
+=== 📊 ALLOCATION STYLE DIRECTIVES ===
+- If the user's Allocation Style is 'Single Stock/ETF (Concentrated)', you MUST recommend exactly ONE single asset/ticker in your portfolio, and its allocation_pct must be exactly 100.
+- If the user's Allocation Style is 'Multiple Stocks/ETFs (Diversified)', you MUST recommend at least TWO distinct assets/tickers, and their allocation_pct values MUST sum to exactly 100%.
+
 CRITICAL FORMAT REQUIREMENT:
 At the absolute end of your response, after the disclaimer, you MUST output two structural XML tags:
-1. <recommended_assets_json> containing a JSON array listing the exact funds or stocks you recommended in your plan:
+1. <recommended_assets_json> containing a JSON array listing the exact funds or stocks you recommended in your plan, including an "allocation_pct" integer representing the percentage allocation (e.g. 70 for 70%):
 <recommended_assets_json>
 [
   {
@@ -152,6 +171,7 @@ At the absolute end of your response, after the disclaimer, you MUST output two 
     "expense_ratio": "0.12%",
     "aum": "₹18,200 Cr",
     "beta": "1.00",
+    "allocation_pct": 70,
     "groww_slug": "nippon-india-etf-nifty-bees"
   }
 ]
@@ -283,22 +303,51 @@ Standard investment disclaimer.`;
         const simulatedReturn = risk.toLowerCase().includes("low") ? "6.2%" : risk.toLowerCase().includes("high") ? "14.8%" : "10.5%";
         const gain = amount * (risk.toLowerCase().includes("low") ? 0.062 : risk.toLowerCase().includes("high") ? 0.148 : 0.105);
         
+        const isSingle = allocation.toLowerCase().includes("single") || allocation.toLowerCase().includes("concentrated");
+        
         let mockAssetsJSON = "";
+        let luxuryAllocationSection = "";
+
         if (risk.toLowerCase().includes("low")) {
-          mockAssetsJSON = `[{"ticker":"LIQUIDBEES.NS","name":"Nippon India ETF Nifty 1D Rate Liquid BeES","buying_price":"₹1000.00","expense_ratio":"0.59%","aum":"₹10,200 Cr","beta":"0.00","groww_slug":"nippon-india-etf-liquid-bees"}]`;
+          if (isSingle) {
+            mockAssetsJSON = `[{"ticker":"LIQUIDBEES.NS","name":"Nippon India ETF Nifty 1D Rate Liquid BeES","buying_price":"₹1000.00","expense_ratio":"0.59%","aum":"₹10,200 Cr","beta":"0.00","allocation_pct":100,"groww_slug":"nippon-india-etf-liquid-bees"}]`;
+            luxuryAllocationSection = `For a total principal of ₹${amount.toLocaleString('en-IN')} under a ${risk} profile with Concentrated Allocation:
+- **100% into Nippon India Liquid BeES (LIQUIDBEES.NS)**: ₹${amount.toLocaleString('en-IN')} (approx. ${Math.floor(amount / 1000)} shares at ₹1000.00 each) to preserve 100% principal with low-risk high security.`;
+          } else {
+            mockAssetsJSON = `[{"ticker":"LIQUIDBEES.NS","name":"Nippon India ETF Nifty 1D Rate Liquid BeES","buying_price":"₹1000.00","expense_ratio":"0.59%","aum":"₹10,200 Cr","beta":"0.00","allocation_pct":70,"groww_slug":"nippon-india-etf-liquid-bees"},{"ticker":"GOLDBEES.NS","name":"Nippon India ETF Gold BeES","buying_price":"₹65.00","expense_ratio":"0.15%","aum":"₹9,800 Cr","beta":"0.20","allocation_pct":30,"groww_slug":"nippon-india-etf-gold-bees"}]`;
+            luxuryAllocationSection = `For a total principal of ₹${amount.toLocaleString('en-IN')} under a ${risk} profile with Diversified Allocation:
+- **70% into Liquid Hedge (LIQUIDBEES.NS)**: ₹${(amount * 0.7).toLocaleString('en-IN')} (approx. ${Math.floor((amount * 0.7) / 1000)} shares at ₹1000.00 each)
+- **30% into Gold Safe Hedge (GOLDBEES.NS)**: ₹${(amount * 0.3).toLocaleString('en-IN')} (approx. ${Math.floor((amount * 0.3) / 65)} shares at ₹65.00 each)`;
+          }
         } else if (risk.toLowerCase().includes("high")) {
-          mockAssetsJSON = `[{"ticker":"NIFTYBEES.NS","name":"Nippon India ETF Nifty 50 BeES","buying_price":"₹285.00","expense_ratio":"0.12%","aum":"₹18,200 Cr","beta":"1.00","groww_slug":"nippon-india-etf-nifty-bees"},{"ticker":"MON100.NS","name":"Motilal Oswal Nasdaq 100 ETF","buying_price":"₹168.00","expense_ratio":"0.54%","aum":"₹7,400 Cr","beta":"1.20","groww_slug":"motilal-oswal-nasdaq-100-etf"}]`;
+          if (isSingle) {
+            mockAssetsJSON = `[{"ticker":"NIFTYBEES.NS","name":"Nippon India ETF Nifty 50 BeES","buying_price":"₹285.00","expense_ratio":"0.12%","aum":"₹18,200 Cr","beta":"1.00","allocation_pct":100,"groww_slug":"nippon-india-etf-nifty-bees"}]`;
+            luxuryAllocationSection = `For a total principal of ₹${amount.toLocaleString('en-IN')} under a ${risk} profile with Concentrated Allocation:
+- **100% into Nifty 50 Index (NIFTYBEES.NS)**: ₹${amount.toLocaleString('en-IN')} (approx. ${Math.floor(amount / 285)} shares at ₹285.00 each) for maximum index participation.`;
+          } else {
+            mockAssetsJSON = `[{"ticker":"NIFTYBEES.NS","name":"Nippon India ETF Nifty 50 BeES","buying_price":"₹285.00","expense_ratio":"0.12%","aum":"₹18,200 Cr","beta":"1.00","allocation_pct":60,"groww_slug":"nippon-india-etf-nifty-bees"},{"ticker":"MON100.NS","name":"Motilal Oswal Nasdaq 100 ETF","buying_price":"₹168.00","expense_ratio":"0.54%","aum":"₹7,400 Cr","beta":"1.20","allocation_pct":40,"groww_slug":"motilal-oswal-nasdaq-100-etf"}]`;
+            luxuryAllocationSection = `For a total principal of ₹${amount.toLocaleString('en-IN')} under a ${risk} profile with Diversified Allocation:
+- **60% into Nifty 50 Index (NIFTYBEES.NS)**: ₹${(amount * 0.6).toLocaleString('en-IN')} (approx. ${Math.floor((amount * 0.6) / 285)} shares at ₹285.00 each)
+- **40% into US Tech Nasdaq 100 Index (MON100.NS)**: ₹${(amount * 0.4).toLocaleString('en-IN')} (approx. ${Math.floor((amount * 0.4) / 168)} shares at ₹168.00 each)`;
+          }
         } else {
-          mockAssetsJSON = `[{"ticker":"NIFTYBEES.NS","name":"Nippon India ETF Nifty 50 BeES","buying_price":"₹285.00","expense_ratio":"0.12%","aum":"₹18,200 Cr","beta":"1.00","groww_slug":"nippon-india-etf-nifty-bees"},{"ticker":"GOLDBEES.NS","name":"Nippon India ETF Gold BeES","buying_price":"₹65.00","expense_ratio":"0.15%","aum":"₹9,800 Cr","beta":"0.20","groww_slug":"nippon-india-etf-gold-bees"}]`;
+          if (isSingle) {
+            mockAssetsJSON = `[{"ticker":"NIFTYBEES.NS","name":"Nippon India ETF Nifty 50 BeES","buying_price":"₹285.00","expense_ratio":"0.12%","aum":"₹18,200 Cr","beta":"1.00","allocation_pct":100,"groww_slug":"nippon-india-etf-nifty-bees"}]`;
+            luxuryAllocationSection = `For a total principal of ₹${amount.toLocaleString('en-IN')} under a ${risk} profile with Concentrated Allocation:
+- **100% into Nifty 50 Index (NIFTYBEES.NS)**: ₹${amount.toLocaleString('en-IN')} (approx. ${Math.floor(amount / 285)} shares at ₹285.00 each) to match balanced growth.`;
+          } else {
+            mockAssetsJSON = `[{"ticker":"NIFTYBEES.NS","name":"Nippon India ETF Nifty 50 BeES","buying_price":"₹285.00","expense_ratio":"0.12%","aum":"₹18,200 Cr","beta":"1.00","allocation_pct":50,"groww_slug":"nippon-india-etf-nifty-bees"},{"ticker":"GOLDBEES.NS","name":"Nippon India ETF Gold BeES","buying_price":"₹65.00","expense_ratio":"0.15%","aum":"₹9,800 Cr","beta":"0.20","allocation_pct":50,"groww_slug":"nippon-india-etf-gold-bees"}]`;
+            luxuryAllocationSection = `For a total principal of ₹${amount.toLocaleString('en-IN')} under a ${risk} profile with Diversified Allocation:
+- **50% into Nifty 50 Index (NIFTYBEES.NS)**: ₹${(amount * 0.5).toLocaleString('en-IN')} (approx. ${Math.floor((amount * 0.5) / 285)} shares at ₹285.00 each)
+- **50% into Gold Safe Hedge (GOLDBEES.NS)**: ₹${(amount * 0.5).toLocaleString('en-IN')} (approx. ${Math.floor((amount * 0.5) / 65)} shares at ₹65.00 each)`;
+          }
         }
 
         report = `### 🎯 Bespoke Investment Strategy
 An elegant strategy designed to preserve and grow your ₹${amount.toLocaleString('en-IN')} with absolute poise. Over a ${timeframe} horizon, we position your capital to harness steady yields while shielding it from volatile market shifts.
 
 ### 💰 Luxury Asset Weightings & Allocation
-For a total principal of ₹${amount.toLocaleString('en-IN')} under a ${risk} profile, we allocate:
-- **70% into Nifty 50 Index (NIFTYBEES.NS)**: ₹${(amount * 0.7).toLocaleString('en-IN')} (approx. ${Math.floor((amount * 0.7) / 285)} shares at ₹285.00 each)
-- **30% into Gold Safe Hedge (GOLDBEES.NS)**: ₹${(amount * 0.3).toLocaleString('en-IN')} (approx. ${Math.floor((amount * 0.3) / 65)} shares at ₹65.00 each)
+${luxuryAllocationSection}
 
 ### 📰 Live News Drivers & Asset Price Impact Analysis
 Our active media search highlights immediate support for Nifty index weightings:
