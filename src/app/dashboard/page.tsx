@@ -8,7 +8,8 @@ import {
 } from "recharts";
 import { 
   Coins, Hourglass, ShieldAlert, Award, Compass, RefreshCw, FileDown, 
-  HelpCircle, CheckCircle2, AlertCircle, TrendingUp, Calendar, Newspaper 
+  HelpCircle, CheckCircle2, AlertCircle, TrendingUp, Calendar, Newspaper,
+  Shield, Scale, Flame, LayoutGrid, Target, Sparkles
 } from "lucide-react";
 
 const COLORS = ["#8a704c", "#1e3f20", "#2c4a5e", "#7b506f", "#bf5a36", "#4682b4"];
@@ -305,79 +306,204 @@ export default function UserDashboard() {
           </button>
         </div>
 
-        {/* Form Controls */}
-        <div className="bg-white border border-cream-200 rounded-lg p-6 shadow-sm space-y-4">
-          <h3 className="font-serif text-lg font-bold text-hunter-800 border-b border-cream-100 pb-2">
-            Bespoke Parameters
-          </h3>
-
-          <div>
-            <label className="block text-[10px] tracking-widest uppercase font-bold text-brass-600 mb-1">
-              Investment Amount (₹)
-            </label>
-            <input 
-              type="number"
-              value={amount}
-              onChange={(e) => setAmount(Number(e.target.value))}
-              className="w-full bg-cream-50 border border-cream-200 p-3 text-xs focus:outline-none focus:border-brass-500 rounded text-hunter-800"
-            />
+        {/* Form Controls (Luxurious Bespoke Parameters) */}
+        <div className="bg-white border border-cream-200 rounded-lg p-6 shadow-sm space-y-5">
+          <div className="border-b border-cream-100 pb-2">
+            <span className="text-[9px] tracking-widest uppercase font-bold text-brass-600 block">
+              PORTFOLIO CONFIGURATOR
+            </span>
+            <h3 className="font-serif text-lg font-bold text-hunter-800">
+              Bespoke Parameters
+            </h3>
           </div>
 
+          {/* Investment Amount Input & Presets */}
           <div>
-            <label className="block text-[10px] tracking-widest uppercase font-bold text-brass-600 mb-1">
-              Investment Horizon
+            <label className="block text-[10px] tracking-widest uppercase font-bold text-brass-600 mb-1.5">
+              Investment Capital (₹) *
             </label>
-            <select 
-              value={timeframe}
-              onChange={(e) => setTimeframe(e.target.value)}
-              className="w-full bg-cream-50 border border-cream-200 p-3 text-xs focus:outline-none focus:border-brass-500 rounded text-hunter-800"
-            >
-              {["1 Week", "1 Month", "6 Months", "1 Year", "3 Years", "5 Years", "10+ Years"].map((t) => (
-                <option key={t} value={t}>{t}</option>
+            <div className="relative rounded bg-cream-50 border border-cream-200">
+              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-brass-600 text-xs font-bold pointer-events-none">
+                ₹
+              </span>
+              <input 
+                type="number"
+                value={amount}
+                onChange={(e) => setAmount(Number(e.target.value))}
+                className="w-full bg-transparent py-3 pl-8 pr-4 text-xs font-bold focus:outline-none focus:border-brass-500 rounded text-hunter-800"
+                min="1000"
+              />
+            </div>
+            
+            {/* Elegant Luxury Capital Presets */}
+            <div className="grid grid-cols-5 gap-1 mt-2">
+              {[
+                { label: "10k", value: 10000 },
+                { label: "50k", value: 50000 },
+                { label: "1L", value: 100000 },
+                { label: "5L", value: 500000 },
+                { label: "10L", value: 1000000 }
+              ].map((preset) => (
+                <button
+                  key={preset.value}
+                  type="button"
+                  onClick={() => setAmount(preset.value)}
+                  className={`py-1 rounded text-[10px] font-mono tracking-wider font-bold border transition ${
+                    amount === preset.value
+                      ? "bg-brass-500 text-white border-brass-500 shadow-xs"
+                      : "bg-cream-50/50 hover:bg-cream-50 text-hunter-800 border-cream-200"
+                  }`}
+                >
+                  ₹{preset.label}
+                </button>
               ))}
-            </select>
+            </div>
           </div>
 
+          {/* Investment Horizon Pills */}
           <div>
-            <label className="block text-[10px] tracking-widest uppercase font-bold text-brass-600 mb-1">
-              Risk Appetite
+            <label className="block text-[10px] tracking-widest uppercase font-bold text-brass-600 mb-1.5">
+              Investment Horizon *
             </label>
-            <select 
-              value={risk}
-              onChange={(e) => setRisk(e.target.value)}
-              className="w-full bg-cream-50 border border-cream-200 p-3 text-xs focus:outline-none focus:border-brass-500 rounded text-hunter-800"
-            >
-              <option value="Low Risk (Safe)">Low Risk (Safe, preserves principal)</option>
-              <option value="Balanced">Balanced (Moderate hybrid growth)</option>
-              <option value="High Risk (Max Growth)">High Risk (Maximum growth potential)</option>
-            </select>
+            <div className="flex flex-wrap gap-1.5">
+              {[
+                "1 Week", "1 Month", "6 Months", 
+                "1 Year", "3 Years", "5 Years", "10+ Years"
+              ].map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setTimeframe(t)}
+                  className={`px-2.5 py-1.5 rounded text-[10px] font-bold font-sans border transition ${
+                    timeframe === t
+                      ? "bg-hunter-800 text-white border-hunter-800 shadow-xs"
+                      : "bg-cream-50/50 hover:bg-cream-100 text-hunter-800 border-cream-200"
+                  }`}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
+            {/* Informative Subtext for short vs long timeframes */}
+            <p className="text-[9px] text-hunter-800/60 mt-1.5 italic leading-tight">
+              {timeframe.includes("Week") || timeframe.includes("Month") && !timeframe.includes("10")
+                ? "⚠ Short-term plans strictly prioritize ultra-safe cash/liquid preservation yields."
+                : "✓ Long-term horizons enable high-performance global and equity index indexing."}
+            </p>
           </div>
 
+          {/* Risk Appetite Selection Cards */}
           <div>
-            <label className="block text-[10px] tracking-widest uppercase font-bold text-brass-600 mb-1">
-              Allocation Style
+            <label className="block text-[10px] tracking-widest uppercase font-bold text-brass-600 mb-1.5">
+              Risk Appetite Profile *
             </label>
-            <select 
-              value={allocation}
-              onChange={(e) => setAllocation(e.target.value)}
-              className="w-full bg-cream-50 border border-cream-200 p-3 text-xs focus:outline-none focus:border-brass-500 rounded text-hunter-800"
-            >
-              <option value="Multiple Stocks/ETFs (Diversified)">Multiple Assets (Diversified Portfolio)</option>
-              <option value="Single Stock/ETF (Concentrated)">Single Concentrated Selection</option>
-            </select>
+            <div className="space-y-2">
+              {[
+                {
+                  value: "Low Risk (Safe)",
+                  title: "Low Risk (Fiduciary Safe)",
+                  desc: "Focus on capital preservation & Nippon Liquid BeES.",
+                  icon: <Shield size={14} className="text-blue-600" />
+                },
+                {
+                  value: "Balanced",
+                  title: "Balanced Moderate Growth",
+                  desc: "Dual indexing across Large Caps and Gold BeES hedge.",
+                  icon: <Scale size={14} className="text-brass-600" />
+                },
+                {
+                  value: "High Risk (Max Growth)",
+                  title: "High Risk (Maximum Indexing)",
+                  desc: "Tech index and Large-cap equities for maximum CAGR.",
+                  icon: <Flame size={14} className="text-red-500" />
+                }
+              ].map((item) => (
+                <button
+                  key={item.value}
+                  type="button"
+                  onClick={() => setRisk(item.value)}
+                  className={`w-full p-3 rounded text-left border transition flex items-start gap-3 ${
+                    risk === item.value
+                      ? "bg-cream-50/80 border-brass-500 shadow-xs ring-1 ring-brass-500/20"
+                      : "bg-white hover:bg-cream-50/30 border-cream-200"
+                  }`}
+                >
+                  <div className="mt-0.5 shrink-0">{item.icon}</div>
+                  <div className="leading-snug">
+                    <span className="block text-xs font-bold text-hunter-800">{item.title}</span>
+                    <span className="block text-[10px] text-hunter-800/70 mt-0.5 font-sans leading-relaxed">{item.desc}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
 
+          {/* Allocation Style Radio-Cards */}
+          <div>
+            <label className="block text-[10px] tracking-widest uppercase font-bold text-brass-600 mb-1.5">
+              Allocation Style *
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                {
+                  value: "Multiple Stocks/ETFs (Diversified)",
+                  title: "Diversified Basket",
+                  desc: "Multiple non-correlating ETFs.",
+                  icon: <LayoutGrid size={13} />
+                },
+                {
+                  value: "Single Stock/ETF (Concentrated)",
+                  title: "Concentrated Target",
+                  desc: "Direct single target asset.",
+                  icon: <Target size={13} />
+                }
+              ].map((item) => (
+                <button
+                  key={item.value}
+                  type="button"
+                  onClick={() => setAllocation(item.value)}
+                  className={`p-3 rounded text-left border transition flex flex-col justify-between h-24 ${
+                    allocation === item.value
+                      ? "bg-cream-50/80 border-brass-500 shadow-xs ring-1 ring-brass-500/20"
+                      : "bg-white hover:bg-cream-50/30 border-cream-200"
+                  }`}
+                >
+                  <div className="flex justify-between items-center w-full">
+                    <span className={`p-1 rounded-full ${allocation === item.value ? "bg-brass-500 text-white" : "bg-cream-100 text-brass-600"}`}>
+                      {item.icon}
+                    </span>
+                    <span className={`w-2.5 h-2.5 rounded-full border flex items-center justify-center ${
+                      allocation === item.value ? "border-brass-500 bg-brass-500" : "border-cream-300 bg-white"
+                    }`}>
+                      {allocation === item.value && <span className="w-1 h-1 bg-white rounded-full"></span>}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="block text-xs font-bold text-hunter-800 leading-none">{item.title}</span>
+                    <span className="block text-[9px] text-hunter-800/65 mt-1 font-sans leading-tight line-clamp-1">{item.desc}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Special Context Textarea */}
           <div>
             <label className="block text-[10px] tracking-widest uppercase font-bold text-brass-600 mb-1">
               Custom Goals / Context (Optional)
             </label>
-            <textarea 
-              placeholder="e.g. Saving for house, kids education, etc."
-              value={customGoal}
-              onChange={(e) => setCustomGoal(e.target.value)}
-              rows={3}
-              className="w-full bg-cream-50 border border-cream-200 p-3 text-xs focus:outline-none focus:border-brass-500 rounded text-hunter-800"
-            />
+            <div className="relative">
+              <textarea 
+                placeholder="e.g. Saving for house downpayment, children's high-pedigree education fund, or special sector focus..."
+                value={customGoal}
+                onChange={(e) => setCustomGoal(e.target.value)}
+                rows={3}
+                className="w-full bg-cream-50 border border-cream-200 p-3 text-xs focus:outline-none focus:border-brass-500 rounded text-hunter-800 leading-relaxed font-sans placeholder-hunter-800/40"
+              />
+              <span className="absolute bottom-2 right-2 text-brass-600 pointer-events-none opacity-40">
+                <Sparkles size={12} />
+              </span>
+            </div>
           </div>
 
           <button
