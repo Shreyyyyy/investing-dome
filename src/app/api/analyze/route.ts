@@ -178,6 +178,8 @@ Ensure that both JSON blocks are completely valid, properly escaped, and do not 
     const nominalMaturityValue = amount * Math.pow(1 + annualRate, years);
     const expectedProfitValue = nominalMaturityValue - amount;
 
+    const benchmarkData = "- NIFTYBEES.NS: Nippon India ETF Nifty 50 BeES (Buying Price ~₹285.00)\n- MON100.NS: Motilal Oswal Nasdaq 100 ETF (Buying Price ~₹168.00)\n- GOLDBEES.NS: Nippon India ETF Gold BeES (Buying Price ~₹65.00)\n- LIQUIDBEES.NS: Nippon India ETF Nifty 1D Rate Liquid BeES (Buying Price ~₹1000.00)";
+
     const userPrompt = `Develop a mathematically sound and highly precise investment diagnostic plan for this portfolio:
 - **Principal Capital**: ₹${amount.toLocaleString('en-IN')} INR
 - **Selected Horizon**: ${timeframe}
