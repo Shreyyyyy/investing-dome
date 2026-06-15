@@ -22,6 +22,11 @@ export default function UserDashboard() {
   const [reportText, setReportText] = useState("");
   const [recommendedFunds, setRecommendedFunds] = useState<any[]>([]);
   const [apiTotals, setApiTotals] = useState<any>(null);
+
+  // API Keys state for Editing inside App
+  const [isEditingKeys, setIsEditingKeys] = useState(false);
+  const [editGroqKey, setEditGroqKey] = useState("");
+  const [editTavilyKey, setEditTavilyKey] = useState("");
   
   // User selections
   const [amount, setAmount] = useState(10000);
@@ -65,7 +70,10 @@ export default function UserDashboard() {
     if (!activeSession) {
       router.push("/login");
     } else {
-      setSession(JSON.parse(activeSession));
+      const parsed = JSON.parse(activeSession);
+      setSession(parsed);
+      setEditGroqKey(parsed.groqKey || "");
+      setEditTavilyKey(parsed.tavilyKey || "");
       setLoading(false);
     }
   }, [router]);
@@ -160,6 +168,35 @@ export default function UserDashboard() {
     }
   };
 
+  const handleSaveKeys = () => {
+    if (!session) return;
+    
+    const updatedSession = {
+      ...session,
+      groqKey: editGroqKey,
+      tavilyKey: editTavilyKey,
+    };
+    
+    setSession(updatedSession);
+    localStorage.setItem("heritage_session", JSON.stringify(updatedSession));
+    
+    const existingUsers = JSON.parse(localStorage.getItem("heritage_registered_users") || "[]");
+    const updatedUsers = existingUsers.map((u: any) => {
+      if (u.username?.toLowerCase() === session.username?.toLowerCase()) {
+        return {
+          ...u,
+          groqKey: editGroqKey,
+          tavilyKey: editTavilyKey,
+        };
+      }
+      return u;
+    });
+    localStorage.setItem("heritage_registered_users", JSON.stringify(updatedUsers));
+    
+    setIsEditingKeys(false);
+    alert("API keys updated and secured successfully!");
+  };
+
   const handleSignout = () => {
     localStorage.removeItem("heritage_session");
     router.push("/");
@@ -190,16 +227,73 @@ export default function UserDashboard() {
           <h2 className="font-serif text-xl font-bold text-hunter-800">{session?.name}</h2>
           <p className="text-xs text-hunter-800/60 font-mono mb-4">{session?.email}</p>
           
-          <div className="border-t border-cream-100 pt-4 space-y-2 text-xs">
-            <div className="flex justify-between">
-              <span className="text-hunter-800/70">Groq Key:</span>
-              <span className="font-mono text-[10px] text-brass-600">{session?.groqKey ? "✓ Loaded" : "None (Ollama)"}</span>
+          {!isEditingKeys ? (
+            <div className="border-t border-cream-100 pt-4 space-y-2 text-xs">
+              <div className="flex justify-between items-center">
+                <span className="text-hunter-800/70">Groq Key:</span>
+                <span className="font-mono text-[10px] text-brass-600">
+                  {session?.groqKey ? `${session.groqKey.substring(0, 6)}...` : "None (Ollama)"}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-hunter-800/70">Tavily Key:</span>
+                <span className="font-mono text-[10px] text-brass-600">
+                  {session?.tavilyKey ? `${session.tavilyKey.substring(0, 8)}...` : "DDG fallback"}
+                </span>
+              </div>
+              <button 
+                onClick={() => setIsEditingKeys(true)}
+                className="w-full mt-2 py-1.5 bg-cream-50 hover:bg-cream-100 text-hunter-800 border border-cream-200 text-[10px] uppercase tracking-wider font-bold rounded transition"
+              >
+                Configure API Keys
+              </button>
             </div>
-            <div className="flex justify-between">
-              <span className="text-hunter-800/70">Tavily Key:</span>
-              <span className="font-mono text-[10px] text-brass-600">{session?.tavilyKey ? "✓ Active" : "DDG fallback"}</span>
+          ) : (
+            <div className="border-t border-cream-100 pt-4 space-y-3 text-xs">
+              <div>
+                <label className="block text-[10px] tracking-widest uppercase font-bold text-brass-600 mb-1">
+                  Groq API Key
+                </label>
+                <input 
+                  type="password"
+                  placeholder="gsk_..."
+                  value={editGroqKey}
+                  onChange={(e) => setEditGroqKey(e.target.value)}
+                  className="w-full bg-cream-50 border border-cream-200 p-2 text-[11px] focus:outline-none focus:border-brass-500 rounded text-hunter-800 font-mono"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] tracking-widest uppercase font-bold text-brass-600 mb-1">
+                  Tavily API Key
+                </label>
+                <input 
+                  type="password"
+                  placeholder="tvly-sk-..."
+                  value={editTavilyKey}
+                  onChange={(e) => setEditTavilyKey(e.target.value)}
+                  className="w-full bg-cream-50 border border-cream-200 p-2 text-[11px] focus:outline-none focus:border-brass-500 rounded text-hunter-800 font-mono"
+                />
+              </div>
+              <div className="flex gap-2">
+                <button 
+                  onClick={handleSaveKeys}
+                  className="flex-1 py-1.5 bg-brass-500 hover:bg-brass-600 text-white text-[10px] uppercase tracking-wider font-bold rounded transition"
+                >
+                  Save
+                </button>
+                <button 
+                  onClick={() => {
+                    setEditGroqKey(session?.groqKey || "");
+                    setEditTavilyKey(session?.tavilyKey || "");
+                    setIsEditingKeys(false);
+                  }}
+                  className="flex-1 py-1.5 bg-transparent text-hunter-800 border border-cream-200 text-[10px] uppercase tracking-wider font-bold rounded hover:bg-cream-100 transition"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
-          </div>
+          )}
           
           <button 
             onClick={handleSignout}

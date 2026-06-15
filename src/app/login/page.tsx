@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter as useAppRouter } from "next/navigation";
-import { KeyRound, Lock, User, Sparkles, LogIn, AlertCircle } from "lucide-react";
+import { KeyRound, Lock, User, LogIn, AlertCircle } from "lucide-react";
 
 export default function LoginPage() {
   const router = useAppRouter();
@@ -10,8 +10,6 @@ export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState("");
-  const [tavilyKey, setTavilyKey] = useState("tvly-sk-default-heritage-key");
-  const [groqKey, setGroqKey] = useState("");
   const [isOAuthLogging, setIsOAuthLogging] = useState(false);
 
   const handleOAuthLogin = (e: React.FormEvent) => {
@@ -55,8 +53,8 @@ export default function LoginPage() {
           password: cleanPassword,
           name: uppercaseName,
           email: `${cleanUsername.toLowerCase()}@heritage.club`,
-          tavilyKey: tavilyKey || "tvly-sk-default-heritage-key",
-          groqKey: groqKey || "",
+          tavilyKey: "tvly-sk-default-heritage-key",
+          groqKey: "",
           avatar: cleanUsername.toLowerCase().includes("lady") || cleanUsername.toLowerCase().includes("abigail") ? "👒" : "🎩"
         };
         
@@ -130,48 +128,6 @@ export default function LoginPage() {
                 required
               />
             </div>
-          </div>
-        </div>
-
-        {/* API Keys Configuration */}
-        <div className="w-full space-y-4 mb-6 border-t border-cream-100 pt-4">
-          <div>
-            <label className="block text-xs uppercase tracking-wider text-brass-600 font-bold mb-1 font-sans">
-              Tavily API Key (Optional / Falls back to DDG)
-            </label>
-            <div className="relative">
-              <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-brass-500">
-                <Sparkles size={14} />
-              </span>
-              <input
-                type="password"
-                placeholder="tvly-sk-..."
-                value={tavilyKey}
-                onChange={(e) => setTavilyKey(e.target.value)}
-                className="w-full pl-9 pr-4 py-3 bg-cream-50 border border-cream-200 rounded text-xs focus:outline-none focus:border-brass-500 text-hunter-800 font-sans"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs uppercase tracking-wider text-brass-600 font-bold mb-1 font-sans">
-              Groq API Key (Falls back to local Ollama)
-            </label>
-            <div className="relative">
-              <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-brass-500">
-                <Lock size={14} />
-              </span>
-              <input
-                type="password"
-                placeholder="gsk_..."
-                value={groqKey}
-                onChange={(e) => setGroqKey(e.target.value)}
-                className="w-full pl-9 pr-4 py-3 bg-cream-50 border border-cream-200 rounded text-xs focus:outline-none focus:border-brass-500 text-hunter-800 font-sans"
-              />
-            </div>
-            <p className="text-[10px] text-hunter-800/60 mt-1 italic leading-tight font-sans">
-              Stored locally on your browser for privacy. Not shared on cloud.
-            </p>
           </div>
         </div>
 
