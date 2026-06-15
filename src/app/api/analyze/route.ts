@@ -215,7 +215,7 @@ List ONLY the hyperlinked titles of the credible news sites/articles from the co
 Briefly explain the Short Term/Long Term Capital Gains (STCG/LTCG) impact matching this ${timeframe} horizon.
 
 ### ⚠️ Professional Disclaimer
-Standard investment disclaimer.`;,oldString:
+Standard investment disclaimer.`;
 
     let report = "";
     
