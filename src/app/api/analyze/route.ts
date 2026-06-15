@@ -252,6 +252,16 @@ Standard investment disclaimer.`;
         // Ultimate Mock Simulation to ensure the app works 100% of the time, even if offline and no keys are supplied!
         const simulatedReturn = risk.toLowerCase().includes("low") ? "6.2%" : risk.toLowerCase().includes("high") ? "14.8%" : "10.5%";
         const gain = amount * (risk.toLowerCase().includes("low") ? 0.062 : risk.toLowerCase().includes("high") ? 0.148 : 0.105);
+        
+        let mockAssetsJSON = "";
+        if (risk.toLowerCase().includes("low")) {
+          mockAssetsJSON = `[{"ticker":"LIQUIDBEES.NS","name":"Nippon India ETF Nifty 1D Rate Liquid BeES","buying_price":"₹1000.00","expense_ratio":"0.59%","aum":"₹10,200 Cr","beta":"0.00","groww_slug":"nippon-india-etf-liquid-bees"}]`;
+        } else if (risk.toLowerCase().includes("high")) {
+          mockAssetsJSON = `[{"ticker":"NIFTYBEES.NS","name":"Nippon India ETF Nifty 50 BeES","buying_price":"₹285.00","expense_ratio":"0.12%","aum":"₹18,200 Cr","beta":"1.00","groww_slug":"nippon-india-etf-nifty-bees"},{"ticker":"MON100.NS","name":"Motilal Oswal Nasdaq 100 ETF","buying_price":"₹168.00","expense_ratio":"0.54%","aum":"₹7,400 Cr","beta":"1.20","groww_slug":"motilal-oswal-nasdaq-100-etf"}]`;
+        } else {
+          mockAssetsJSON = `[{"ticker":"NIFTYBEES.NS","name":"Nippon India ETF Nifty 50 BeES","buying_price":"₹285.00","expense_ratio":"0.12%","aum":"₹18,200 Cr","beta":"1.00","groww_slug":"nippon-india-etf-nifty-bees"},{"ticker":"GOLDBEES.NS","name":"Nippon India ETF Gold BeES","buying_price":"₹65.00","expense_ratio":"0.15%","aum":"₹9,800 Cr","beta":"0.20","groww_slug":"nippon-india-etf-gold-bees"}]`;
+        }
+
         report = `### 🎯 Bespoke Investment Strategy
 An elegant strategy designed to preserve and grow your ₹${amount.toLocaleString('en-IN')} with absolute poise. Over a ${timeframe} horizon, we position your capital to harness steady yields while shielding it from volatile market shifts.
 
