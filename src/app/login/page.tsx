@@ -37,6 +37,12 @@ export default function LoginPage() {
         return;
       }
       
+      // Ensure matchedUser has username property for legacy account self-healing
+      if (!matchedUser.username) {
+        matchedUser.username = cleanUsername;
+        localStorage.setItem("heritage_registered_users", JSON.stringify(existingUsers));
+      }
+      
       setIsOAuthLogging(true);
       setTimeout(() => {
         // Log in with existing account

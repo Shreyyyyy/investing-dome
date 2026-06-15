@@ -74,9 +74,29 @@ export default function UserDashboard() {
       router.push("/login");
     } else {
       const parsed = JSON.parse(activeSession);
-      setSession(parsed);
-      setEditGroqKey(parsed.groqKey || "");
-      setEditTavilyKey(parsed.tavilyKey || "");
+      
+      // Self-heal: Retrieve the latest credentials and keys from registered users to stay perfectly in sync on restart/reload
+      const existingUsers = JSON.parse(localStorage.getItem("heritage_registered_users") || "[]");
+      const matchedUser = existingUsers.find((u: any) => {
+        const uUsername = u.username?.toLowerCase() || "";
+        const pUsername = parsed.username?.toLowerCase() || "";
+        const uEmail = u.email?.toLowerCase() || "";
+        const pEmail = parsed.email?.toLowerCase() || "";
+        const uName = u.name?.toLowerCase() || "";
+        const pName = parsed.name?.toLowerCase() || "";
+        
+        return (
+          (uUsername && pUsername && uUsername === pUsername) ||
+          (uEmail && pEmail && uEmail === pEmail) ||
+          (uName && pName && uName === pName)
+        );
+      });
+      
+      const currentSession = matchedUser ? { ...parsed, ...matchedUser } : parsed;
+      
+      setSession(currentSession);
+      setEditGroqKey(currentSession.groqKey || "");
+      setEditTavilyKey(currentSession.tavilyKey || "");
       setLoading(false);
     }
   }, [router]);
@@ -185,7 +205,18 @@ export default function UserDashboard() {
     
     const existingUsers = JSON.parse(localStorage.getItem("heritage_registered_users") || "[]");
     const updatedUsers = existingUsers.map((u: any) => {
-      if (u.username?.toLowerCase() === session.username?.toLowerCase()) {
+      const uUsername = u.username?.toLowerCase() || "";
+      const sUsername = session.username?.toLowerCase() || "";
+      const uEmail = u.email?.toLowerCase() || "";
+      const sEmail = session.email?.toLowerCase() || "";
+      const uName = u.name?.toLowerCase() || "";
+      const sName = session.name?.toLowerCase() || "";
+      
+      if (
+        (uUsername && sUsername && uUsername === sUsername) ||
+        (uEmail && sEmail && uEmail === sEmail) ||
+        (uName && sName && uName === sName)
+      ) {
         return {
           ...u,
           groqKey: editGroqKey,
