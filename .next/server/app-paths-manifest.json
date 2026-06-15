@@ -1,3 +1,10 @@
 {
-  "/api/auth/route": "app/api/auth/route.js"
+  "/_not-found/page": "app/_not-found/page.js",
+  "/api/analyze/route": "app/api/analyze/route.js",
+  "/api/auth/route": "app/api/auth/route.js",
+  "/admin/page": "app/admin/page.js",
+  "/api/chart/route": "app/api/chart/route.js",
+  "/page": "app/page.js",
+  "/login/page": "app/login/page.js",
+  "/dashboard/page": "app/dashboard/page.js"
 }

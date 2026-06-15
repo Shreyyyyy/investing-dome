@@ -435,8 +435,41 @@ ${mockAssetsJSON}
     }
 
     // Map each recommended fund to its highly legitimate, precise Groww page URL
-    const mappedFunds = recommendedFunds.map((fund: any) => {
-      const ticker = fund.ticker.toUpperCase();
+    const staticFacts: any = {
+      "NIFTYBEES.NS": { expense_ratio: "0.04%", aum: "₹25,000+ Cr", beta: "1.00", name: "Nippon India ETF Nifty 50 BeES" },
+      "GOLDBEES.NS": { expense_ratio: "0.79%", aum: "₹10,000+ Cr", beta: "0.15", name: "Nippon India ETF Gold BeES" },
+      "LIQUIDBEES.NS": { expense_ratio: "0.69%", aum: "₹15,000+ Cr", beta: "0.00", name: "Nippon India ETF Nifty 1D Rate Liquid BeES" },
+      "MON100.NS": { expense_ratio: "0.58%", aum: "₹8,000+ Cr", beta: "1.15", name: "Motilal Oswal Nasdaq 100 ETF" }
+    };
+
+    const mappedFunds = [];
+    for (const fund of recommendedFunds) {
+      let f = { ...fund };
+      const ticker = (fund.ticker || "").toUpperCase().trim();
+      const facts = staticFacts[ticker] || staticFacts[`${ticker}.NS`];
+      
+      if (facts) {
+        f.expense_ratio = facts.expense_ratio;
+        f.aum = facts.aum;
+        f.beta = facts.beta;
+        if (!f.name || f.name.length < 5) f.name = facts.name; 
+      }
+      
+      // Fetch live price to overwrite LLM hallucinations
+      try {
+        const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?range=1d&interval=1d`;
+        const res = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0" } });
+        if (res.ok) {
+          const data = await res.json();
+          const price = data?.chart?.result?.[0]?.meta?.regularMarketPrice;
+          if (price) {
+            f.buying_price = `₹${parseFloat(price).toFixed(2)}`;
+          }
+        }
+      } catch (e) {
+        console.error("Live Price Fetch Error:", e);
+      }
+
       let growwUrl = `https://groww.in/search?q=${encodeURIComponent(ticker.replace(".NS", ""))}`;
       
       // Strict standard mappings for core benchmarks to guarantee the exact specific asset window
@@ -448,15 +481,13 @@ ${mockAssetsJSON}
         growwUrl = "https://groww.in/etfs/nippon-india-etf-gold-bees";
       } else if (ticker === "LIQUIDBEES.NS" || ticker === "LIQUIDBEES") {
         growwUrl = "https://groww.in/etfs/nippon-india-etf-liquid-bees";
-      } else if (fund.groww_slug) {
-        growwUrl = `https://groww.in/etfs/${fund.groww_slug}`;
+      } else if (f.groww_slug) {
+        growwUrl = `https://groww.in/etfs/${f.groww_slug}`;
       }
       
-      return {
-        ...fund,
-        groww_url: growwUrl
-      };
-    });
+      f.groww_url = growwUrl;
+      mappedFunds.push(f);
+    }
 
     return NextResponse.json({
       success: true,

@@ -1,30 +1,52 @@
 import { NextRequest, NextResponse } from "next/server";
-import fs from "fs";
+import sqlite3 from "sqlite3";
+import { open } from "sqlite";
 import path from "path";
+import fs from "fs";
 
-const DB_PATH = path.join(process.cwd(), "users_db.json");
+let dbPromise: any = null;
 
-// Helper to read database
-function readDB() {
-  try {
-    if (!fs.existsSync(DB_PATH)) {
-      return [];
-    }
-    const data = fs.readFileSync(DB_PATH, "utf8");
-    return JSON.parse(data || "[]");
-  } catch (e) {
-    console.error("Error reading users_db.json:", e);
-    return [];
+async function getDB() {
+  if (!dbPromise) {
+    dbPromise = open({
+      filename: path.join(process.cwd(), "users.db"),
+      driver: sqlite3.Database,
+    }).then(async (db) => {
+      await db.exec(`
+        CREATE TABLE IF NOT EXISTS users (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          username TEXT,
+          password TEXT,
+          name TEXT,
+          email TEXT,
+          tavilyKey TEXT,
+          groqKey TEXT,
+          avatar TEXT
+        )
+      `);
+      
+      // Migrate from users_db.json if it exists and table is empty
+      try {
+        const count = await db.get("SELECT COUNT(*) as count FROM users");
+        if (count.count === 0) {
+           const jsonPath = path.join(process.cwd(), "users_db.json");
+           if (fs.existsSync(jsonPath)) {
+             const data = JSON.parse(fs.readFileSync(jsonPath, "utf8"));
+             for (const u of data) {
+               await db.run(
+                 "INSERT INTO users (username, password, name, email, tavilyKey, groqKey, avatar) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                 [u.username, u.password, u.name, u.email, u.tavilyKey, u.groqKey, u.avatar]
+               );
+             }
+           }
+        }
+      } catch (e) {
+        console.error("Migration error:", e);
+      }
+      return db;
+    });
   }
-}
-
-// Helper to write database
-function writeDB(data: any[]) {
-  try {
-    fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2), "utf8");
-  } catch (e) {
-    console.error("Error writing users_db.json:", e);
-  }
+  return dbPromise;
 }
 
 export async function POST(req: NextRequest) {
@@ -32,7 +54,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { action, username, password, email, groqKey, tavilyKey, avatar, name } = body;
 
-    const db = readDB();
+    const db = await getDB();
 
     if (action === "login") {
       const cleanUsername = (username || "").trim();
@@ -43,11 +65,9 @@ export async function POST(req: NextRequest) {
       }
 
       // Find user
-      let matchedUser = db.find(
-        (u: any) =>
-          u.username?.toLowerCase() === cleanUsername.toLowerCase() ||
-          u.email?.toLowerCase() === cleanUsername.toLowerCase() ||
-          u.email?.toLowerCase() === `${cleanUsername.toLowerCase()}@heritage.club`
+      const matchedUser = await db.get(
+        `SELECT * FROM users WHERE LOWER(username) = ? OR LOWER(email) = ? OR LOWER(email) = ?`,
+        [cleanUsername.toLowerCase(), cleanUsername.toLowerCase(), `${cleanUsername.toLowerCase()}@heritage.club`]
       );
 
       if (matchedUser) {
@@ -69,8 +89,10 @@ export async function POST(req: NextRequest) {
           avatar: cleanUsername.toLowerCase().includes("lady") || cleanUsername.toLowerCase().includes("abigail") ? "👒" : "🎩"
         };
 
-        db.push(newUser);
-        writeDB(db);
+        await db.run(
+          "INSERT INTO users (username, password, name, email, tavilyKey, groqKey, avatar) VALUES (?, ?, ?, ?, ?, ?, ?)",
+          [newUser.username, newUser.password, newUser.name, newUser.email, newUser.tavilyKey, newUser.groqKey, newUser.avatar]
+        );
 
         return NextResponse.json({ success: true, user: newUser, registered: true });
       }
@@ -81,47 +103,47 @@ export async function POST(req: NextRequest) {
       const cleanEmail = (email || "").trim();
       const cleanName = (name || "").trim();
 
-      // Find user in DB by any identifier
-      let userIdx = db.findIndex((u: any) => {
-        const uUsername = u.username?.toLowerCase() || "";
-        const sUsername = cleanUsername.toLowerCase();
-        const uEmail = u.email?.toLowerCase() || "";
-        const sEmail = cleanEmail.toLowerCase();
-        const uName = u.name?.toLowerCase() || "";
-        const sName = cleanName.toLowerCase();
+      // Find user
+      const matchedUser = await db.get(
+        `SELECT * FROM users WHERE LOWER(username) = ? OR LOWER(email) = ? OR LOWER(name) = ?`,
+        [cleanUsername.toLowerCase(), cleanEmail.toLowerCase(), cleanName.toLowerCase()]
+      );
 
-        return (
-          (uUsername && sUsername && uUsername === sUsername) ||
-          (uEmail && sEmail && uEmail === sEmail) ||
-          (uName && sName && uName === sName)
+      if (matchedUser) {
+        const newGroq = groqKey !== undefined ? groqKey : matchedUser.groqKey;
+        const newTavily = tavilyKey !== undefined ? tavilyKey : matchedUser.tavilyKey;
+        
+        await db.run(
+          "UPDATE users SET groqKey = ?, tavilyKey = ? WHERE id = ?",
+          [newGroq, newTavily, matchedUser.id]
         );
-      });
-
-      if (userIdx !== -1) {
-        db[userIdx].groqKey = groqKey !== undefined ? groqKey : db[userIdx].groqKey;
-        db[userIdx].tavilyKey = tavilyKey !== undefined ? tavilyKey : db[userIdx].tavilyKey;
-        writeDB(db);
-        return NextResponse.json({ success: true, user: db[userIdx] });
+        
+        matchedUser.groqKey = newGroq;
+        matchedUser.tavilyKey = newTavily;
+        
+        return NextResponse.json({ success: true, user: matchedUser });
       } else {
-        // User not found in DB (e.g. server restarted and wiped local file DB, but user still has local session).
-        // Let's create the user in the database so their keys can be saved.
+        // Recover user
         const newUser = {
           username: cleanUsername || "unknown_user",
-          password: "auto_generated_password", // Placeholder since we don't have their password here
+          password: "auto_generated_password",
           name: cleanName || cleanUsername || "Unknown",
           email: cleanEmail || `${cleanUsername || "unknown"}@heritage.club`,
           tavilyKey: tavilyKey || "tvly-sk-default-heritage-key",
           groqKey: groqKey || "",
           avatar: "🎩"
         };
-        db.push(newUser);
-        writeDB(db);
+        await db.run(
+          "INSERT INTO users (username, password, name, email, tavilyKey, groqKey, avatar) VALUES (?, ?, ?, ?, ?, ?, ?)",
+          [newUser.username, newUser.password, newUser.name, newUser.email, newUser.tavilyKey, newUser.groqKey, newUser.avatar]
+        );
         return NextResponse.json({ success: true, user: newUser, recovered: true });
       }
     }
 
     if (action === "get_all") {
-      return NextResponse.json({ success: true, users: db });
+      const users = await db.all("SELECT * FROM users");
+      return NextResponse.json({ success: true, users });
     }
 
     return NextResponse.json({ success: false, error: "Invalid action." }, { status: 400 });
